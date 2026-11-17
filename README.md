@@ -84,6 +84,15 @@ Amazon Linux이면 패키지 관리 명령, SSH 사용자(`ec2-user`)가 달라�
 
 문답 및 상황 대처: [docs/evaluation-guide.md](docs/evaluation-guide.md).
 
+### 통합 평가자료 다운로드
+
+- [평가·실습 자료 PDF (8쪽)](docs/evaluation-handbook.pdf)
+- [수정 가능한 Markdown 원본](docs/evaluation-handbook.md)
+
+항목 1~4의 17개 평가 기준, 제안 배점, 실습 가이드, 예상 답변, 장애 대응 및 리소스 정리 체크리스트를 묶었습니다. 배점은 공식 기준이 아닌 제안안이며 실제 실습 결과는 기입란으로 남겨두었습니다.
+
+통합 자료의 실습 예제는 **Amazon Linux 2023 + B 방식(`/health`)**입니다. 위 README의 **Ubuntu + A 방식(브라우저)**과는 선택 가능한 별도 예제입니다. 실제 사용하는 OS와 검증 방식 하나에 맞춰 명령·설정·증빙을 작성하세요. 태그 예시도 실제 프로젝트에서 정한 규칙 하나로 통일하세요.
+
 ## 최종 제출 전 확인
 
 1. `docs/architecture.svg`를 실제 구성과 맞게 수정하고 **PNG 또는 PDF 1장**으로 내보내 `docs/architecture.png` 또는 `docs/architecture.pdf` 추가
