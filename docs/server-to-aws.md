@@ -76,4 +76,4 @@ flowchart LR
 
 EC2 내부에서는 성공하고 외부에서 시간 초과가 난다면, 이 평가의 점검 순서에 따라 **라우팅과 IGW 연결 → 실제 적용된 SG → 퍼블릭 IP와 DNS → 웹 서버의 리스닝 주소와 로그**를 확인한다. `404`가 돌아오면 응답한 웹 서버에 도달했으므로, 요청한 경로와 Nginx 설정부터 확인한다. 외부 검증을 마치면 실제 결과를 남기고 실습용 리소스를 정리한다.
 
-[AWS 실습 절차와 평가자료](evaluation-handbook.md) · [실습 아키텍처](architecture.md) · [리소스 정리 체크리스트](cleanup-checklist.md)
+[AWS 실습 절차와 평가자료](evaluation-handbook.md) · [실습 아키텍처](architecture.md) · [실습 후 정리 및 제출](after-lab.md)
