@@ -31,11 +31,18 @@
 | 3. 트러블슈팅 | [docs/troubleshooting.md](docs/troubleshooting.md) | 실제 오류 1건 이상: 증상→가설→검증→조치→결과→재발 방지 |
 | 4. 정리 | [docs/cleanup-checklist.md](docs/cleanup-checklist.md) | EC2/EBS/EIP/IGW/VPC 최소 5종 및 추가 요금 리소스 |
 
+## 서울 리전 전환 상태 (2026-11-21)
+
+**현재 프로젝트는 시드니에 할당되어 서울 접근이 차단됩니다.** 서울 EC2 콘솔에서 플랜 업그레이드 후 고급 기능 활성화가 필요하다는 안내를 확인했습니다. 기본 리전 편집도 Unified Settings 사용 제한으로 저장하지 못했습니다.
+
+[실제 진단 기록 및 후속 절차](docs/seoul-region-troubleshooting.md)를 참고하세요. URL만 서울로 바꿔도 이 제한은 해제되지 않습니다. 유료 전환·고급 기능 활성화·리소스 삭제는 수행하지 않았습니다.
+
 ## 실습 환경 / 구성 기록
 
 | 항목 | 실제 사용값 |
 |---|---|
-| AWS Region | ap-northeast-2 (서울) |
+| 목표 AWS Region | ap-northeast-2 (서울) — 전환 미완료 |
+| 현재 프로젝트 할당 / 기본 리전 | ap-southeast-2 (시드니), 2026-11-21 콘솔 확인 |
 | VPC CIDR / 이름 | [입력] |
 | Public Subnet CIDR / AZ | [입력] |
 | Internet Gateway ID | [입력] |
