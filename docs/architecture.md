@@ -2,25 +2,28 @@
 
 ![구성도](architecture.svg)
 
-**참고 구성(실제 값 아님):** Region `ap-northeast-2`; VPC `10.0.0.0/16`; Public Subnet `10.0.1.0/24`. 생성 후 CIDR/리소스 ID/보안 그룹 규칙을 실제 값으로 수정합니다.
+**실제 구성 (사용자가 제공한 콘솔 캡처 기준, 2026-11-21):** 서울 `ap-northeast-2`, VPC `10.0.0.0/16`, Public Subnet **`10.0.0.0/20`** (`ap-northeast-2a`), EC2 `10.0.7.102`(사설) / `3.35.0.156`(당시 퍼블릭 IPv4). 과거 문서의 `10.0.1.0/24`는 예시이므로 실제 서브넷과 다르게 수정했습니다.
+
+<details><summary>실제 아키텍처 Mermaid 원본 보기</summary>
 
 ```mermaid
 flowchart TB
-  U["외부 사용자 · 브라우저 HTTP 80"]
-  I["Internet"]
-  G["Internet Gateway (VPC 연결)"]
-  subgraph V["VPC · 예시 10.0.0.0/16"]
-    R["Public Route Table\n0.0.0.0/0 → IGW"]
-    subgraph S["Public Subnet · 예시 10.0.1.0/24"]
-      SG["Security Group\n80 ← 0.0.0.0/0\n22 ← 내 IP/32"]
-      E["EC2 · 퍼블릭 IPv4 · Nginx :80"]
-      SG --> E
+  U["외부 Chrome 브라우저<br/>HTTP: 3.35.0.156:80"] --> NET["인터넷"]
+  NET <--> IGW["Internet Gateway<br/>igw-01fef922fafa9c6cb"]
+  subgraph VPC["aws-mini-test-vpc<br/>10.0.0.0/16 | 서울"]
+    R["Public Route Table<br/>10.0.0.0/16 → local<br/>0.0.0.0/0 → IGW"]
+    subgraph S["Public Subnet | 10.0.0.0/20 | ap-northeast-2a"]
+      SG["aws-mini-test-sg<br/>HTTP TCP 80: 0.0.0.0/0<br/>SSH TCP 22: 관리자 IP/32"]
+      E["EC2 Ubuntu 24.04 + Nginx<br/>사설 10.0.7.102<br/>퍼블릭 3.35.0.156"]
+      SG -. "트래픽 허용" .-> E
     end
     R -. "서브넷 연결" .-> S
   end
-  U --> I --> G --> SG
-  G -. "VPC 인터넷 경로" .-> R
+  IGW <--> E
+  R -. "기본 경로 지정" .-> IGW
 ```
+
+</details>
 
 ## 외부 요청 흐름 (항목 2)
 
@@ -36,11 +39,11 @@ flowchart TB
 
 | 확인 항목 | 콘솔 위치 | 증빙 |
 |---|---|---|
-| VPC CIDR | VPC → Your VPCs | [캡처/값] |
-| Subnet CIDR/공개 여부 | VPC → Subnets | [캡처/값] |
-| IGW 연결 | VPC → Internet Gateways | [캡처/값] |
-| 0.0.0.0/0 기본 경로 및 연결 | VPC → Route Tables → Routes / Subnet associations | [캡처/값] |
-| EC2 퍼블릭 IPv4 | EC2 → Instances → Networking | [캡처/값] |
-| SG TCP 80 / SSH 22 소스 | EC2 → Security Groups → Inbound rules | [캡처/값] |
+| VPC CIDR | VPC → Your VPCs | 10.0.0.0/16 확인 |
+| Subnet CIDR/공개 여부 | EC2 → 네트워크 설정 / VPC Subnets | 10.0.0.0/20, Public Subnet 확인 |
+| IGW 연결 | VPC 리소스 맵 | aws-mini-test-igw 연결 화면 확인 |
+| 0.0.0.0/0 기본 경로 및 연결 | VPC → Route Tables → Routes / Subnet associations | igw-01fef922fafa9c6cb · 활성 확인 |
+| EC2 퍼블릭 IPv4 | EC2 인스턴스 목록 | 3.35.0.156 (실습 시점) |
+| SG TCP 80 / SSH 22 소스 | EC2 → Security Groups → Inbound rules | 실제 2개 규칙 캡처 확인 |
 
-원문 제출 파일 형식은 **PNG 또는 PDF 1장**입니다. 이 SVG는 편집용 시각 자료이므로 실제 구성 반영 후 PNG/PDF로 내보내 제출하세요.
+원문 제출 파일 형식은 **PNG 또는 PDF 1장**입니다. 이 SVG는 GitHub 미리보기용 편집 가능한 다이어그램이므로 제출 시 PNG/PDF로 내보내세요. 실제 AWS 리소스는 **아직 삭제하지 않았습니다.**
