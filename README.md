@@ -2,7 +2,7 @@
 
 > Codyssey Basic Cloud & AI API · AWS 실습 평가 및 증빙 템플릿
 >
-> **상태: 제출 양식 준비 완료 / 실제 AWS 구축·외부 접속·삭제 검증은 미실시.** 문서의 `[입력]`, `[ ]`는 실제 결과로 채워야 합니다.
+> **진행 현황 (2026-11-21): 서울 리전 VPC·EC2·SSH·Nginx 구축과 외부 브라우저 접속 검증 성공. 리소스 정리는 아직 미실시.** 캡처 원본은 대화에서 확보했으나 GitHub 증빙 이미지 업로드는 별도로 필요합니다.
 
 ## 실습 전 읽기
 
@@ -31,42 +31,45 @@
 | 3. 트러블슈팅 | [docs/troubleshooting.md](docs/troubleshooting.md) | 실제 오류 1건 이상: 증상→가설→검증→조치→결과→재발 방지 |
 | 4. 정리 | [docs/cleanup-checklist.md](docs/cleanup-checklist.md) | EC2/EBS/EIP/IGW/VPC 최소 5종 및 추가 요금 리소스 |
 
-## 서울 리전 전환 상태 (2026-11-21)
+## 서울 리전 전환 결과 (2026-11-21)
 
-**현재 프로젝트는 시드니에 할당되어 서울 접근이 차단됩니다.** 서울 EC2 콘솔에서 플랜 업그레이드 후 고급 기능 활성화가 필요하다는 안내를 확인했습니다. 기본 리전 편집도 Unified Settings 사용 제한으로 저장하지 못했습니다.
+**해결 완료:** 초기 가입 환경에서는 시드니 프로젝트 할당 및 서울 접근 제한 경고가 있었으나, 사용자가 Google 신속 가입 대신 Google 계정 가입 방식으로 다시 진행한 후 서울 리전 VPC·EC2 콘솔을 정상 이용했습니다. 이는 사용자 경험으로 확인한 해결 사례이며 모든 AWS 계정에 동일한 가입 방식 제약이 존재한다고 일반화하지 않습니다.
 
-[실제 진단 기록 및 후속 절차](docs/seoul-region-troubleshooting.md)를 참고하세요. URL만 서울로 바꿔도 이 제한은 해제되지 않습니다. 유료 전환·고급 기능 활성화·리소스 삭제는 수행하지 않았습니다.
+[실제 트러블슈팅 보고서](docs/seoul-region-troubleshooting.md) · [실습 및 평가 현황](docs/pre-cleanup-evaluation.md)
 
-## 실습 환경 / 구성 기록
+## 실습 환경 / 실제 검증 기록
 
 | 항목 | 실제 사용값 |
 |---|---|
-| 목표 AWS Region | ap-northeast-2 (서울) — 전환 미완료 |
-| 현재 프로젝트 할당 / 기본 리전 | ap-southeast-2 (시드니), 2026-11-21 콘솔 확인 |
-| VPC CIDR / 이름 | [입력] |
-| Public Subnet CIDR / AZ | [입력] |
-| Internet Gateway ID | [입력] |
-| Public Route Table ID | [입력] |
-| EC2 / AMI / 인스턴스 유형 | [입력] |
-| 퍼블릭 IPv4 또는 DNS | [입력 — 삭제 후 접속 불가] |
-| 웹 서버 | [Nginx 등 입력] |
-| SG 이름 / ID | [입력] |
-| IAM 주체 / 부여 정책 | [입력 — 비밀·계정 ID 불필요] |
-| 리소스 추적 태그 | Project=codyssey-m3-1, Owner=[별칭], Environment=lab |
+| AWS Region | `ap-northeast-2` (서울) |
+| VPC | `aws-mini-test-vpc` / `10.0.0.0/16` |
+| Public Subnet | `aws-mini-test-subnet-public1-ap-northeast-2a` / `10.0.0.0/20` |
+| Internet Gateway | `aws-mini-test-igw` / `igw-01fef922fafa9c6cb` |
+| Public Route Table | `aws-mini-test-rtb-public` / `rtb-05c3b69984ea7f365` |
+| Route | `10.0.0.0/16 → local`, `0.0.0.0/0 → IGW` (활성) |
+| EC2 | Ubuntu 24.04 LTS · `t3.micro` · `i-0b54a3173ed64e7e3` |
+| 사설 IP / 당시 퍼블릭 IP | `10.0.7.102` / `3.35.0.156` |
+| 웹 서버 | Nginx 1.24.0 · `curl -i http://localhost/` → HTTP 200 OK |
+| SG | `aws-mini-test-sg` · TCP 22: 특정 IP/32, TCP 80: 0.0.0.0/0 |
+| 외부 검증 | **A 방식 성공** · 2026-11-21 21:57 KST · Welcome to nginx! |
+| IAM·태그 세부 정책 | 평가용 별도 IAM 주체 및 실제 태그는 검증 필요. 콘솔 화면의 `root` 사용은 원문 제한사항과 비교 필요 |
+| 정리 | EC2/EBS/EIP/IGW/VPC **삭제 미확인** |
+
+[17개 평가 질문별 판정표와 제출물 현황](docs/pre-cleanup-evaluation.md) · [아키텍처 구조](docs/architecture.md)
 
 **보안:** 퍼블릭 IP, 이름, SG 규칙은 공개해도 되는 범위만 기록합니다. AWS 액세스 키, 비밀 키, SSH 개인키(PEM), 계정 번호, 민감 로그는 Git에 절대 올리지 마세요. 공개 저장소의 캡처는 마스킹 후 사용하세요.
 
 ## 실행/설정 보조 체크리스트 (평가 항목 1의 5문항과 별개)
 
-- [ ] VPC 1개, Public Subnet 1개 생성
-- [ ] IGW를 VPC에 연결
-- [ ] Public Subnet이 연동된 Route Table에 `0.0.0.0/0 → IGW` 등록
-- [ ] Public Subnet의 EC2에 퍼블릭 IPv4 할당, SSH 접속 성공
-- [ ] 웹 서버 실행, EC2 안에서 `curl -i http://localhost/` 응답 200 확인
-- [ ] SG 인바운드: TCP 80 = `0.0.0.0/0`, TCP 22 = **내 공인 IP/32만**. 그 외 불필요한 인바운드 미허용
-- [ ] IAM은 EC2/VPC/SG 등의 실습 필요 작업으로만 제한하며 AdministratorAccess 사용 안 함
-- [ ] 외부 검증 A/B 중 하나 성공, 실제 스크린샷 및 URL/IP 기록
-- [ ] 트러블슈팅 실제 1건 이상 기록
+- [x] VPC 1개, Public Subnet 1개 생성
+- [x] IGW를 VPC에 연결
+- [x] Public Subnet이 연동된 Route Table에 `0.0.0.0/0 → IGW` 등록
+- [x] Public Subnet의 EC2에 퍼블릭 IPv4 할당, SSH 접속 성공
+- [x] 웹 서버 실행, EC2 안에서 `curl -i http://localhost/` 응답 200 확인
+- [x] SG 인바운드: TCP 80 = `0.0.0.0/0`, TCP 22 = **특정 공인 IP/32만** 확인
+- [ ] IAM은 EC2/VPC/SG 등의 실습 필요 작업으로만 제한하며 AdministratorAccess 사용 안 함 (실제 확인 필요)
+- [x] 외부 검증 A 성공, 실제 화면과 접속 정보 확인 (GitHub 이미지 업로드 별도)
+- [x] 트러블슈팅 실제 1건 이상 기록
 - [ ] 종료 후 리소스 정리 증빙 (최소 5종) 완료
 
 ## 서버 배포 및 테스트 예시 (Ubuntu + Nginx)
@@ -91,10 +94,11 @@ Amazon Linux이면 패키지 관리 명령, SSH 사용자(`ec2-user`)가 달라�
 ## 외부 접속 검증 — **A 선택(권장·간단)**
 
 - 방식: **A. 브라우저 http://<PUBLIC_IP> 접속 후 페이지 표시**
-- 실제 사용 URL: `http://[실제 퍼블릭 IP]/`
-- 검증 시각(KST): [입력]
-- 결과: [미검증 / 성공 / 실패]
-- 증빙: `docs/evidence/external-browser.png` [추가 필요]
+- 실제 사용 URL: `http://3.35.0.156/` (실습 시점의 퍼블릭 IPv4; 삭제 후 접속되지 않을 수 있음)
+- 검증 시각(KST): 2026-11-21 21:57
+- 결과: **성공** · 외부 Chrome에서 `Welcome to nginx!` 표시
+- 내부 HTTP: `curl -i http://localhost/` → HTTP 200 OK
+- 증빙: 대화에서 캡처 확보, GitHub `docs/evidence/external-browser.png` 업로드는 별도
 - 브라우저에서 나온 화면과 주소창(필요 시 일부 마스킹)을 캡처합니다.
 
 대체 방식 B: `curl -i http://<PUBLIC_IP>/health`에서 HTTP 200 및 고정 문구 `OK`를 **실제로 서버에 /health 경로를 구현한 뒤** 검증. Nginx 기본 설치만으로는 `/health`가 자동 제공되지 않습니다.
@@ -116,4 +120,4 @@ Amazon Linux이면 패키지 관리 명령, SSH 사용자(`ec2-user`)가 달라�
 
 [실습 후 가이드](docs/after-lab.md)에 따라 EC2가 살아 있을 때 외부 접속 증빙을 남기고, 실제 구성과 장애 대응을 기록하세요. AWS 리소스를 정리한 뒤 제출물 4종을 평가 기준에 대조할 수 있습니다.
 
-> 템플릿은 평가 대비 자료이지, AWS에 리소스를 실제로 생성하거나 결과를 검증한 기록이 아닙니다.
+> 실제 AWS 구성 및 접속 성공은 사용자 제공 콘솔 캡처·터미널 로그를 근거로 기록했습니다. 리소스 삭제 및 과금 정리는 아직 확인되지 않았습니다.
