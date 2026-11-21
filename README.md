@@ -6,6 +6,10 @@
 
 ## 실습 전 읽기
 
+[AWS 미션 스토리맵 열기](https://aws-mini-test-study-guide.kfri-2-kfri.chatgpt.site/#story-map) · [GitHub 소스 보기](story-map/)
+
+웹 서버 기초부터 AWS 연결망, 요청·응답 추적, 접속 검증과 제출까지 6개 장면으로 볼 수 있습니다. 로컬에서는 저장소를 내려받아 `story-map/index.html`을 브라우저로 열면 됩니다.
+
 [웹 서버의 기본부터 AWS EC2까지](docs/server-to-aws.md)에서 내 컴퓨터로 HTTP 요청을 보내 보고, 같은 페이지를 EC2에서 공개할 때 주소, 라우팅, 보안 그룹이 어떻게 연결되는지 확인하세요.
 
 ## 평가 기준: 항목 1~4 (총 17문항)

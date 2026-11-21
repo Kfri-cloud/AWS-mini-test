@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="웹 서버가 요청을 처리하는 원리부터 AWS EC2 실습과 제출까지 이어지는 가이드">
+<meta name="theme-color" content="#11263a">
+<link rel="stylesheet" href="story.css">
+<script src="story.js" defer></script>
+<title>내 웹 서버에서 AWS까지 · AWS-mini-test</title>
+<style>
+:root{--navy:#11263a;--mint:#a8f1d1;--green:#17654e;--paper:#f6f8f4;--ink:#132a3e;--muted:#486071;--line:#d0ded8;--white:#fff;--mono:Consolas,"Courier New",monospace;--sans:"Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.7 var(--sans);word-break:keep-all}a{color:var(--green);text-underline-offset:.23em}a:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #247958;outline-offset:4px}h1,h2,h3,p,figure{margin:0}h1,h2,h3{line-height:1.22;letter-spacing:-.055em}p+p{margin-top:.8em}code,pre,.eyebrow,.number{font-family:var(--mono)}code{overflow-wrap:anywhere}pre{white-space:pre-wrap;overflow-wrap:anywhere}section{scroll-margin-top:5rem}.wrap{width:min(1120px,calc(100% - 44px));margin-inline:auto}.skip{position:absolute;top:-80px;left:1rem;background:var(--mint);padding:.5rem 1rem;z-index:5}.skip:focus{top:1rem}
+.header{position:sticky;top:0;background:var(--navy);z-index:2;border-bottom:1px solid #385467}.header .wrap{display:flex;min-height:62px;align-items:center;justify-content:space-between;gap:15px}.brand{font:700 14px var(--mono);color:var(--mint);white-space:nowrap;text-decoration:none}.header nav{display:flex;gap:clamp(12px,3vw,30px)}.header nav a{font-size:14px;color:#e7f3f1;text-decoration:none;white-space:nowrap}.header nav a:hover{text-decoration:underline}.hero{background:var(--navy);color:var(--white);padding:clamp(46px,8vw,94px) 0}.hero-grid{display:grid;grid-template-columns:1.13fr .87fr;gap:clamp(25px,6vw,78px);align-items:center}.eyebrow{font-size:13px;letter-spacing:.11em;text-transform:uppercase;color:var(--green);font-weight:bold}.hero .eyebrow{color:var(--mint)}h1{font-size:clamp(43px,6.1vw,80px);margin:.22em 0 .28em}h1 span{color:var(--mint)}.hero p{max-width:35rem;color:#c4d6df}.cta{display:inline-block;margin-top:24px;padding:.65rem 1.05rem;background:var(--mint);color:var(--navy);text-decoration:none;font-weight:700;border-radius:6px}.cta:hover{background:#cbfbe6}
+.terminal{border:1px solid #567180;border-radius:12px;overflow:hidden;background:#091b2b;box-shadow:0 18px 36px #071a2b55}.terminal header{padding:9px 16px;background:#203b50;color:#cae0e7;font:13px/1.7 var(--mono)}.terminal pre{margin:0;padding:18px 19px;font:clamp(12px,1.45vw,15px)/1.85 var(--mono);color:var(--mint)}.terminal .dim{color:#a3bbc8}.route{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}.route a{padding:19px 16px;display:flex;gap:12px;text-decoration:none;color:var(--ink);align-items:baseline}.route a+a{border-left:1px solid var(--line)}.route a:hover{background:#e6f5eb}.number{color:var(--green);font-size:13px;font-weight:bold}
+.chapter{padding:clamp(46px,7vw,84px) 0;border-bottom:1px solid var(--line)}.chapter h2{margin:.25em 0 .42em;font-size:clamp(29px,4.2vw,49px)}.lead{max-width:69ch;color:var(--muted);margin-bottom:23px}.split{display:grid;grid-template-columns:1fr 1fr;gap:22px}.panel{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:clamp(17px,3vw,27px)}.panel h3{font-size:22px;margin-bottom:10px}.panel p{margin:0 0 .8rem}.panel p:last-child{margin-bottom:0}.commands{background:#e9f4ee;border-radius:6px;padding:12px 14px;margin:.75em 0;font-size:.88rem}.diagram{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;margin-block:22px}.diagram-scroll{overflow-x:auto;padding:6px}.diagram svg{display:block;width:100%;min-width:760px;height:auto}.diagram figcaption{border-top:1px solid var(--line);padding:12px 20px;color:var(--muted);font-size:14px}.spec{margin:22px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:9px;overflow:hidden}.spec div{padding:14px 18px;background:#fff}.spec dt{font-weight:bold}.spec dd{margin:2px 0 0;color:var(--muted);font-size:14px}.links{margin-top:16px;font-size:14px}.links a{display:inline-block;margin:0 12px 5px 0}.note{margin:20px 0;background:#d9f5e7;border-left:4px solid var(--green);padding:13px 17px}.checklist{padding:0;margin:0;list-style:none}.checklist li+li{border-top:1px solid var(--line)}.checklist label{display:flex;align-items:baseline;gap:10px;padding:8px 0;cursor:pointer}.checklist input{accent-color:var(--green);width:17px;height:17px;flex:none;align-self:center}.checklist input:checked+span{color:var(--green)}.footer{padding:27px 0;color:var(--muted);font-size:14px}.footer p{margin-bottom:5px}.refs a{margin-right:12px;display:inline-block}
+@media(max-width:700px){.hero-grid,.split{grid-template-columns:1fr}.spec{grid-template-columns:1fr 1fr}.route a{display:block;padding:12px 8px;font-size:13px}.route .number{display:block}.header .wrap{width:calc(100% - 28px)}.header nav a{font-size:12px}.brand{font-size:12px}}
+.lesson-nav{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 32px}.lesson-nav a{background:#e9f4ee;border:1px solid var(--line);border-radius:6px;padding:5px 11px;text-decoration:none;font-size:14px}.lesson-nav a:hover{background:#d9f5e7}.lesson-unit{margin:36px 0;scroll-margin-top:5.5rem}.lesson-unit h3{font-size:clamp(22px,3vw,32px);margin-bottom:12px}.lesson-unit h4{margin:0 0 .4em;font-size:18px}.lesson-unit .panel h3{font-size:22px}.flow{counter-reset:flow;list-style:none;padding:0;margin:18px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.flow li{padding:15px;background:#fff;border-top:3px solid var(--green);border-radius:4px}.flow li::before{counter-increment:flow;content:'0' counter(flow);display:block;color:var(--green);font:700 13px var(--mono);margin-bottom:8px}.flow strong{display:block;margin-bottom:5px}.flow span{font-size:14px;color:var(--muted)}.wire{background:var(--navy);color:#eaf7f0}.wire pre{margin:.5em 0 0;font-size:.88rem;color:var(--mint)}.wire p{font-size:14px;color:#c4d6df}.disclosure{border:1px solid var(--line);border-radius:7px;background:var(--white);padding:11px 15px;margin:8px 0}.disclosure summary{cursor:pointer;font-weight:700}.disclosure p{margin:.6em 0 .35em;color:var(--muted)}.lab-steps{padding-left:1.5em}.lab-steps li+li{margin-top:10px}.lab-steps li::marker{color:var(--green);font-weight:bold}.lesson-note{font-size:14px;color:var(--muted);margin-top:10px}
+@media(max-width:700px){.flow{grid-template-columns:1fr 1fr}}@media(max-width:390px){.flow{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body id="top">
+<a class="skip" href="#content">본문으로</a>
+<header class="header"><div class="wrap"><a class="brand" href="#top">AWS-mini-test</a><nav aria-label="목차"><a href="#before">실습 전</a><a href="#lab">AWS 실습</a><a href="#after">실습 후</a></nav></div></header>
+<main id="content">
+<section class="hero" aria-labelledby="page-title"><div class="wrap hero-grid">
+<div><div class="eyebrow">AWS-mini-test · M3-1 스토리맵</div><h1 id="page-title">내 웹 서버에서<br><span>AWS까지</span></h1><p>내 컴퓨터에서 열린 웹페이지를 다른 사람도 보려면 무엇이 더 필요할까요? 한 장면씩 넘기며 웹 요청이 EC2에 도달하고 돌아오는 길을 확인합니다.</p><a class="cta" href="#story-map">스토리맵 시작 ↓</a></div>
+<div class="terminal"><header>HTTP 요청과 응답 예시</header><pre><span class="dim">$</span> curl -i http://127.0.0.1:8000/
+
+HTTP/1.0 200 OK
+Content-Type: text/html
+
+&lt;h1&gt;Hello, web server!&lt;/h1&gt;</pre></div>
+</div></section>
+<section class="wrap story" id="story-map" aria-label="AWS 미션 스토리맵">
+<div class="story-tools"><span class="eyebrow">미션 스토리맵</span><label>장면 선택 <select id="scene-select">
+<option value="scene-local">01 · 내 PC에서 열리는 웹페이지</option><option value="scene-address">02 · 주소와 포트 읽기</option><option value="scene-aws">03 · AWS 연결망 한눈에 보기</option><option value="scene-trace">04 · 요청과 응답 따라가기</option><option value="scene-check">05 · 어디에서 접속이 끊겼을까?</option><option value="scene-submit">06 · 실습 결과 설명하기</option>
+</select></label></div>
+<div class="story-frame">
+<header class="scene-head"><div class="scene-count" id="scene-counter">장면 1 / 6</div><h2 id="scene-title" tabindex="-1">내 PC에서 열리는 웹페이지</h2><p id="scene-summary">브라우저와 서버가 같은 컴퓨터에 있는 상황부터 시작한다.</p></header>
+<noscript><p class="scene-body"><a href="#full-guide">전체 학습자료를 열어 내용을 읽을 수 있습니다.</a></p></noscript>
+<article class="scene-body" id="scene-local" data-scene data-title="내 PC에서 열리는 웹페이지" data-summary="브라우저와 서버가 같은 컴퓨터에 있는 상황부터 시작한다.">
+<div class="map-zone"><ol class="network" style="--nodes:3" aria-label="같은 컴퓨터 안의 요청 흐름"><li><strong>내 브라우저</strong><small>GET /</small></li><li><strong>127.0.0.1:8000</strong><small>내 PC 안에서 연결</small></li><li class="active"><strong>Python 웹 서버</strong><small>200 OK + index.html 반환</small></li></ol><p>세 지점이 모두 같은 PC 안에 있다. PC는 실행 환경이고 Python 웹 서버는 요청을 처리하는 프로그램이다.</p></div>
+<details><summary>다른 사람이 이 주소를 입력하면?</summary><p>그 사람의 브라우저는 그 사람의 PC에 접속한다. <code>127.0.0.1</code>은 언제나 요청을 보내는 컴퓨터 자신을 가리킨다.</p></details>
+<p><a href="#local-lab">로컬 실습 명령과 예제 보기</a></p>
+</article>
+<article class="scene-body" id="scene-address" data-scene data-title="주소와 포트 읽기" data-summary="브라우저는 URL에서 어디에 연결할지, 무엇을 요청할지 알아낸다." hidden>
+<table><thead><tr><th scope="col">URL의 부분</th><th scope="col">의미</th></tr></thead><tbody><tr><td><code>http://</code></td><td>브라우저와 웹 서버가 주고받는 메시지의 규칙</td></tr><tr><td><code>203.0.113.10</code></td><td>접속할 예시 퍼블릭 IPv4. 도메인으로 접속하면 보통 DNS로 IP를 찾는다.</td></tr><tr><td><code>:80</code></td><td>HTTP의 기본 포트. 생략해도 80번을 사용한다.</td></tr><tr><td><code>/</code> 또는 <code>/health</code></td><td>연결한 웹 서버에 요청할 경로</td></tr></tbody></table>
+<p>직접 연결하는 이번 실습에서는 <code>http://&lt;EC2_PUBLIC_IP&gt;/</code>를 사용한다. <code>203.0.113.10</code>은 문서용 예시여서 실제 EC2 주소로 바꿔야 한다.</p>
+<p><a href="#http-flow">HTTP 요청과 응답 메시지 더 보기</a></p>
+</article>
+<article class="scene-body" id="scene-aws" data-scene data-title="AWS 연결망 한눈에 보기" data-summary="같은 HTML을 외부에 보내려면 주소, 경로, 접근 규칙과 웹 서버가 필요하다." hidden>
+<ol class="network" aria-label="AWS 웹 요청 흐름"><li><strong>외부 브라우저</strong><small>퍼블릭 IPv4:80으로 접속</small></li><li><strong>Internet Gateway</strong><small>VPC를 인터넷과 연결하고 IPv4 매핑</small></li><li><strong>보안 그룹</strong><small>EC2 네트워크 인터페이스에서 TCP 80 허용 여부 판단</small></li><li class="active"><strong>EC2 + Nginx</strong><small>퍼블릭 서브넷에서 HTTP 처리</small></li></ol>
+<div class="map-zone"><h3>VPC 안의 배치</h3><p>VPC <code>10.10.0.0/16</code> 안에 퍼블릭 서브넷 <code>10.10.1.0/24</code>와 EC2 <code>10.10.1.10</code>이 있다. 서브넷에 연결한 라우트 테이블의 <code>0.0.0.0/0 → IGW</code>가 인터넷 방향의 기본 경로를 지정한다.</p></div>
+<details><summary>주소 변환, 경로 선택, 허용 규칙의 차이</summary><p>IGW는 EC2의 퍼블릭 IPv4와 사설 IPv4를 대응시킨다. 라우트 테이블은 목적지별 경로를 정한다. 보안 그룹은 허용할 연결을 정한다. 표나 규칙을 물리 장비처럼 거친다는 뜻은 아니다.</p></details>
+<p><a href="#aws-connection">기존 로컬·AWS 비교 구성도 보기</a></p>
+</article>
+<article class="scene-body" id="scene-trace" data-scene data-title="요청과 응답 따라가기" data-summary="한 단계씩 진행하며 현재 위치, IP 주소와 포트가 어떻게 달라지는지 확인한다." hidden>
+<ol id="trace-network" class="network" aria-label="통신 위치와 진행 방향"><li><strong>브라우저</strong><small>198.51.100.20</small></li><li><strong>IGW</strong><small>공인 ↔ 사설 IPv4 매핑</small></li><li><strong>보안 그룹</strong><small>EC2 인터페이스 규칙</small></li><li><strong>Nginx</strong><small>10.10.1.10:80</small></li></ol>
+<div class="trace-control"><button type="button" id="trace-next" class="primary">한 단계 진행 →</button><button type="button" id="trace-prev">이전 단계</button><button type="button" id="trace-reset">처음부터</button></div>
+<div class="trace-card" aria-live="polite"><div class="trace-index" id="trace-index"></div><p><strong id="trace-title"></strong></p><dl class="trace-fields"><dt>출발지</dt><dd><code id="trace-from"></code></dd><dt>목적지</dt><dd><code id="trace-to"></code></dd><dt>내용 예시</dt><dd><code id="trace-data"></code></dd></dl><p id="trace-note"></p></div>
+<p class="lesson-note">설명용 주소와 단순화한 흐름이다. 실제 TCP 연결에는 여러 패킷이 필요하고, 이 장면에서는 주요 전환점만 표시한다.</p>
+</article>
+<article class="scene-body" id="scene-check" data-scene data-title="어디에서 접속이 끊겼을까?" data-summary="내부 응답과 외부 접속을 따로 확인하면 점검 범위를 좁힐 수 있다." hidden>
+<details open><summary>EC2 안에서도 응답이 없다</summary><p>SSH로 들어가 <code>curl -i http://127.0.0.1/</code>을 실행한다. 실패하면 Nginx 실행 상태, 리스닝 포트, 서버 로그를 확인한다.</p></details>
+<details><summary>EC2 안에서는 200인데 외부에서는 시간이 초과된다</summary><p>외부에서 요청한 퍼블릭 IP와 포트를 확인한다. 서브넷의 IGW 기본 경로, EC2에 적용된 SG의 TCP 80 규칙, Nginx가 외부 주소로 들어오는 연결을 받는지 순서대로 점검한다.</p></details>
+<details><summary>외부에서 404가 온다</summary><p>웹 서버가 응답했다. 실제 대상 서버가 맞는지 확인한 뒤 <code>/</code>와 <code>/health</code> 중 어떤 경로를 요청했고 그 경로가 설정돼 있는지 확인한다.</p></details>
+<p><a href="#lab">방식 A·B와 AWS 실습 링크 보기</a></p>
+</article>
+<article class="scene-body" id="scene-submit" data-scene data-title="실습 결과 설명하기" data-summary="직접 검증한 결과를 바탕으로, 요청이 어디를 지나 어떤 응답을 받았는지 말해 본다." hidden>
+<details><summary>내 설명에 포함할 내용</summary><p>외부 브라우저가 어떤 주소와 포트를 썼는지, IGW와 라우트 테이블이 맡은 역할은 무엇인지, 보안 그룹에 어떤 규칙을 두었는지, 외부에서 어떤 응답을 확인했는지 순서대로 설명한다.</p></details>
+<ol><li>EC2를 종료하기 전에 실제 구성도와 외부 접속 결과를 남긴다.</li><li>문제가 있었다면 가설, 확인한 로그, 조치, 재검증 결과를 기록한다.</li><li>실습 리소스를 정리하고 최종 상태를 확인한다.</li></ol>
+<p><a href="#after">제출 체크리스트 보기</a> · <a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/after-lab.md">GitHub 실습 후 기록 양식</a></p>
+</article>
+<nav class="pager" aria-label="장면 이동"><button type="button" id="scene-prev" disabled>← 이전 장면</button><span id="scene-position">1 / 6</span><button type="button" id="scene-next" class="primary">다음 장면 →</button></nav>
+</div>
+</section>
+<details id="full-guide" class="wrap guide-details"><summary>전체 학습자료 펼치기 · 서버 기초, AWS 실습, 증빙과 정리</summary>
+
+<section class="chapter" id="before"><div class="wrap">
+<div class="eyebrow">01 · 실습 전</div><h2>브라우저가 요청하면 서버가 응답한다</h2>
+<p class="lead">내 노트북도 웹 서버를 실행할 수 있다. 브라우저는 요청을 보내는 <strong>클라이언트</strong>, 요청을 받아 답하는 프로그램은 <strong>웹 서버</strong>다. 이 두 프로그램은 같은 컴퓨터 안에서도 통신할 수 있다.</p>
+<nav class="lesson-nav" aria-label="서버 기초 목차"><a href="#server-roles">서버의 역할</a><a href="#http-flow">요청과 응답</a><a href="#local-lab">로컬 실습</a><a href="#server-debug">오류 구분</a></nav>
+<article class="lesson-unit" id="server-roles">
+<h3>서버라고 부르는 두 가지</h3>
+<div class="split"><div class="panel"><h4>서버 컴퓨터</h4><p>운영체제와 프로그램이 돌아가는 곳이다. 내 PC도 서버 역할을 맡을 수 있고, AWS에서는 Linux가 실행되는 <strong>EC2 인스턴스</strong>가 이 역할을 맡는다.</p></div>
+<div class="panel"><h4>웹 서버 프로그램</h4><p><strong>Nginx</strong>나 실습용 Python 서버처럼, 운영체제 위에서 실행되어 주소와 포트에 연결을 받고 HTTP 요청을 처리한다. 프로그램을 꺼도 컴퓨터 자체는 계속 켜져 있을 수 있다.</p></div></div>
+<p class="lesson-note"><strong>정적 페이지</strong>는 준비된 HTML이나 이미지 파일을 돌려준다. <strong>동적 페이지</strong>는 로그인 상태나 검색어에 따라 애플리케이션이 응답을 만든다. Nginx는 파일을 직접 반환하거나 요청을 애플리케이션으로 전달할 수 있다. 이번 실습은 파일 하나로 시작한다.</p>
+</article>
+<article class="lesson-unit" id="http-flow">
+<h3>주소창에 URL을 입력하면 일어나는 일</h3>
+<p class="lead"><code>http://127.0.0.1:8000/</code>을 예로 들면 <code>http</code>는 통신 규칙, <code>127.0.0.1</code>은 자기 컴퓨터의 주소, <code>8000</code>은 접속할 포트, <code>/</code>는 요청 경로다.</p>
+<ol class="flow">
+<li><strong>서버 주소 찾기</strong><span>도메인 이름을 쓰면 브라우저는 DNS 등으로 IP를 찾는다. 이 예시는 IP를 직접 입력한다.</span></li>
+<li><strong>포트에 연결하기</strong><span>이 HTTP/1.1 예에서는 TCP로 연결한다. 웹 서버는 해당 주소와 포트에서 연결을 기다려야 한다. HTTPS에서는 TLS로 통신을 보호한다.</span></li>
+<li><strong>HTTP 요청 보내기</strong><span>브라우저는 <code>GET /</code>를 보내 페이지를 요청한다. 헤더에는 접속 대상 등을 담을 수 있다.</span></li>
+<li><strong>응답 읽기</strong><span>서버는 결과를 알리는 상태 코드, 본문의 형식 등을 담은 헤더, 필요한 경우 본문을 보낸다. 브라우저는 HTML을 화면에 그린다.</span></li>
+</ol>
+<div class="split"><div class="panel wire"><h4>요청 예시</h4><pre>GET / HTTP/1.1
+Host: 127.0.0.1:8000</pre><p><code>GET</code>은 가져오겠다는 메서드이고, <code>/</code>는 서버가 처리할 경로다.</p></div>
+<div class="panel wire"><h4>응답 예시</h4><pre>HTTP/1.0 200 OK
+Content-Type: text/html
+
+&lt;h1&gt;Hello, web server!&lt;/h1&gt;</pre><p><code>200</code>은 처리 성공을, <code>Content-Type</code>은 본문의 형식을 나타낸다. Python 로컬 서버가 보낼 수 있는 응답을 단순화했다.</p></div></div>
+</article>
+<article class="lesson-unit" id="local-lab">
+<h3>내 PC에서 HTTP 응답 확인하기</h3>
+<div class="panel"><ol class="lab-steps">
+<li>빈 실습 폴더에 <code>index.html</code>을 만들고 아래 내용을 저장한다.<pre class="commands">&lt;!doctype html&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;h1&gt;Hello, web server!&lt;/h1&gt;</pre></li>
+<li>그 폴더에서 Python 3로 서버를 실행한다. <code>--bind 127.0.0.1</code>은 자기 PC에서 들어오는 연결만 받게 한다.<pre class="commands">python -m http.server 8000 --bind 127.0.0.1</pre><p class="lesson-note">환경에 따라 <code>python3</code> 또는 Windows의 <code>py</code>를 쓴다.</p></li>
+<li>서버 터미널은 열어 둔 채 새 터미널에서 아래 요청을 보낸다. Windows PowerShell에서는 <code>curl.exe</code>를 쓴다.<pre class="commands">curl -i http://127.0.0.1:8000/
+curl -i http://127.0.0.1:8000/missing.html</pre><p>첫 요청의 <code>200</code>과 HTML, 둘째 요청의 <code>404</code>를 응답 첫 줄과 서버 로그에서 비교한다. 확인 후 서버 터미널에서 <kbd>Ctrl+C</kbd>로 종료한다.</p></li>
+</ol></div>
+</article>
+<article class="lesson-unit" id="server-debug">
+<h3>응답이 없을 때와 오류 응답이 올 때</h3>
+<p class="lead">먼저 관찰한 증상을 고르고, 어느 지점까지 요청이 갔는지 판단한다.</p>
+<details class="disclosure"><summary>연결이 거부되거나 시간이 초과됐다</summary><p>HTTP 상태 코드를 받기 전 단계다. 연결 거부라면 주소와 포트, 서버가 그 주소에서 대기 중인지 확인한다. 시간 초과라면 경로와 필터링부터 살펴보고, 연결 뒤 응답을 기다리다 멈춘 경우에는 서버 로그도 본다. 증상만으로 원인을 확정할 수는 없다.</p></details>
+<details class="disclosure"><summary><code>404 Not Found</code>가 돌아왔다</summary><p>어떤 웹 서버가 HTTP 응답을 보냈으므로, 먼저 응답한 서버가 기대한 서버인지 확인한다. 그다음 URL의 경로, 실제 파일 이름, 웹 루트 또는 Nginx 경로 설정을 확인한다.</p></details>
+<details class="disclosure"><summary><code>500</code>이나 <code>502</code>가 돌아왔다</summary><p><code>500</code>은 서버가 요청 처리 중 문제를 만났음을 뜻한다. <code>502</code>는 게이트웨이나 프록시가 뒤쪽 서버에서 유효한 응답을 받지 못했음을 뜻한다. 해당 시각의 웹 서버 오류 로그와 연결된 애플리케이션 상태를 확인한다.</p></details>
+<div class="note"><strong>AWS에서 확인할 것</strong> · EC2에 SSH로 접속한 뒤의 <code>127.0.0.1</code>은 EC2 자신이다. 그 요청이 성공하면 웹 서버의 내부 응답을 확인한 것이다. 다른 사람도 볼 수 있는지는 별도 PC에서 EC2의 퍼블릭 IP로 요청해 확인한다. <a href="#lab">AWS 요청 경로 보기 ↓</a></div>
+</article>
+<p class="links"><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages">MDN HTTP 메시지 ↗</a><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status">MDN 상태 코드 ↗</a><a href="https://nginx.org/en/docs/beginners_guide.html">Nginx 시작 가이드 ↗</a><a href="https://docs.python.org/3/library/http.server.html">Python 로컬 서버 ↗</a></p>
+</div></section>
+
+<section class="chapter" id="lab"><div class="wrap">
+<div class="eyebrow">02 · AWS 실습</div><h2>같은 페이지를 인터넷에 공개하기</h2>
+<p class="lead">EC2에서 Nginx를 실행하고, 외부 브라우저가 찾을 주소와 서버까지 이어지는 경로를 설정한다. 퍼블릭 서브넷의 라우팅, 퍼블릭 IPv4, 보안 그룹, 웹 서버 리스닝 상태를 함께 확인한다.</p>
+<article class="lesson-unit" id="aws-connection">
+<h3>로컬에서 열던 웹페이지를 AWS에 올리면</h3>
+<p class="lead">두 환경 모두 브라우저가 <code>GET /</code>을 보내고 웹 서버가 HTML을 반환한다. 아래 도식은 같은 요청이 각 환경에서 어느 주소와 포트로 연결되는지 비교한다.</p>
+<figure class="diagram"><div class="diagram-scroll" tabindex="0" aria-label="가로 스크롤 가능한 로컬 및 AWS 비교 도식">
+<svg viewBox="0 0 760 304" role="img" aria-labelledby="local-cloud-title local-cloud-desc" xmlns="http://www.w3.org/2000/svg">
+<title id="local-cloud-title">로컬 웹 서버와 AWS 웹 서버 연결 비교</title><desc id="local-cloud-desc">로컬에서는 같은 PC에서 127.0.0.1의 8000번 포트로 요청합니다. AWS에서는 외부 PC에서 EC2 퍼블릭 IPv4의 80번 포트로 요청합니다.</desc>
+<defs><marker id="local-cloud-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#17654e"/></marker></defs>
+<rect x="24" y="20" width="712" height="112" rx="8" fill="#f6f8f4" stroke="#648174" stroke-dasharray="6 4"/>
+<rect x="24" y="156" width="712" height="112" rx="8" fill="#f6f8f4" stroke="#648174" stroke-dasharray="6 4"/>
+<g fill="#486071" font-family="Malgun Gothic, sans-serif" font-size="15" font-weight="700"><text x="44" y="44">로컬 · 같은 PC</text><text x="44" y="180">AWS · 외부 PC에서 EC2로</text></g>
+<g fill="none" stroke="#17654e" stroke-width="2" marker-end="url(#local-cloud-arrow)"><path d="M204 84 H348"/><path d="M508 84 H556"/><path d="M204 220 H348"/><path d="M508 220 H556"/></g>
+<g fill="#fff" stroke="#638083"><rect x="48" y="60" width="156" height="48" rx="8"/><rect x="352" y="60" width="156" height="48" rx="8"/><rect x="48" y="196" width="156" height="48" rx="8"/><rect x="352" y="196" width="156" height="48" rx="8"/></g>
+<g fill="#11263a"><rect x="560" y="60" width="152" height="48" rx="8"/><rect x="560" y="196" width="152" height="48" rx="8"/></g>
+<g fill="#132a3e" text-anchor="middle" font-family="Malgun Gothic, sans-serif" font-size="15" font-weight="700"><text x="126" y="90">내 PC의 브라우저</text><text x="430" y="90">Python 웹 서버</text><text x="126" y="226">외부 PC의 브라우저</text><text x="430" y="226">EC2의 Nginx</text><text x="636" y="90" fill="#a8f1d1">200 + HTML</text><text x="636" y="226" fill="#a8f1d1">200 + HTML</text></g>
+<rect x="212" y="56" width="132" height="18" fill="#f6f8f4"/><rect x="212" y="192" width="132" height="18" fill="#f6f8f4"/>
+<g fill="#17654e" text-anchor="middle" font-family="Consolas, Malgun Gothic, monospace" font-size="13"><text x="278" y="70">127.0.0.1:8000</text><text x="278" y="206">퍼블릭 IPv4:80</text></g>
+<path d="M28 286 H56" stroke="#17654e" stroke-width="2" marker-end="url(#local-cloud-arrow)"/><text x="68" y="291" fill="#486071" font-family="Malgun Gothic, sans-serif" font-size="14">요청과 처리 순서</text>
+</svg></div><figcaption>로컬 주소 <code>127.0.0.1</code>은 접속을 시도하는 컴퓨터 자신을 가리킨다. 다른 사람의 PC에서는 EC2의 퍼블릭 IPv4로 접속한다.</figcaption></figure>
+<h4>외부 요청이 AWS 안에서 지나가는 경로</h4>
+<figure class="diagram"><div class="diagram-scroll" tabindex="0" aria-label="가로 스크롤 가능한 AWS 구성도">
+<svg viewBox="0 0 760 304" role="img" aria-labelledby="aws-path-title aws-path-desc" xmlns="http://www.w3.org/2000/svg">
+<title id="aws-path-title">외부 브라우저에서 EC2까지</title><desc id="aws-path-desc">외부 브라우저의 HTTP 요청이 인터넷 게이트웨이를 거쳐 퍼블릭 서브넷의 EC2에 도달하며, 보안 그룹이 TCP 80을 허용할 때 Nginx가 응답합니다.</desc>
+<defs><marker id="aws-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#17654e"/></marker></defs>
+<rect x="212" y="24" width="524" height="224" rx="12" fill="#f6f8f4" stroke="#648174" stroke-dasharray="6 4"/>
+<rect x="448" y="60" width="264" height="168" rx="8" fill="#e9f4ee" stroke="#648174" stroke-dasharray="6 4"/>
+<g fill="#486071" font-family="Consolas, monospace" font-size="15" font-weight="700"><text x="232" y="49">AWS VPC</text><text x="468" y="85">PUBLIC SUBNET</text></g>
+<g stroke="#17654e" stroke-width="2" fill="none" marker-end="url(#aws-arrow)"><path d="M164 144 H244"/><path d="M384 144 H476"/></g>
+<rect x="24" y="108" width="140" height="72" rx="8" fill="#fff" stroke="#638083"/>
+<rect x="248" y="108" width="136" height="72" rx="8" fill="#fff" stroke="#638083"/>
+<rect x="480" y="104" width="204" height="80" rx="8" fill="#11263a"/>
+<g font-family="Malgun Gothic, sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="#132a3e"><text x="94" y="137">외부 브라우저</text><text x="316" y="137" font-size="14">Internet Gateway</text><text x="582" y="137" fill="#a8f1d1">EC2 · Nginx</text></g>
+<g font-family="Consolas, Malgun Gothic, monospace" font-size="14" text-anchor="middle" fill="#486071"><text x="94" y="160">GET /</text><text x="316" y="160">퍼블릭 IPv4 연결</text><text x="582" y="161" fill="#fff">SG 허용 · TCP 80</text><text x="580" y="210">Route Table · 0.0.0.0/0 → IGW</text></g>
+<path d="M28 274 H56" stroke="#17654e" stroke-width="2" marker-end="url(#aws-arrow)"/><text x="68" y="279" fill="#486071" font-size="14" font-family="Malgun Gothic, sans-serif">HTTP 요청 방향</text><path d="M232 274 H260" stroke="#648174" stroke-dasharray="6 4"/><text x="272" y="279" fill="#486071" font-size="14" font-family="Malgun Gothic, sans-serif">네트워크 경계</text>
+</svg></div><figcaption>서브넷의 라우트 테이블은 트래픽이 따르는 경로를 지정한다. SG는 어떤 연결을 받을지 결정한다.</figcaption></figure>
+<ol class="flow">
+<li><strong>퍼블릭 IP로 접속</strong><span>브라우저가 EC2의 퍼블릭 IPv4에 TCP 80으로 연결한다.</span></li>
+<li><strong>IGW가 VPC로 연결</strong><span>인터넷 게이트웨이가 퍼블릭 IPv4를 EC2의 사설 IPv4에 매핑한다.</span></li>
+<li><strong>SG가 연결을 검사</strong><span>인바운드 규칙이 접속자의 TCP 80 연결을 허용하면 요청이 Nginx에 도달할 수 있다.</span></li>
+<li><strong>Nginx가 응답</strong><span>Nginx가 <code>GET /</code>에 HTML을 반환한다. 외부 목적지로 가는 응답은 서브넷의 IGW 경로를 사용한다.</span></li>
+</ol>
+<p class="lesson-note">SSH는 관리자가 EC2를 설정할 때 쓰는 별도 연결이다. 관리자 IP에서 TCP 22로 접속하며, 방문자의 웹 요청 경로에는 포함되지 않는다. <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html">AWS 인터넷 게이트웨이 공식 문서 ↗</a></p>
+</article>
+<dl class="spec"><div><dt>EC2 · Nginx</dt><dd>가상 서버와 HTTP 요청을 처리하는 프로그램</dd></div><div><dt>VPC · 서브넷</dt><dd>가상 네트워크와 그 안의 IP 주소 범위</dd></div><div><dt>IGW · 라우팅</dt><dd>서브넷과 인터넷을 잇는 경로</dd></div><div><dt>퍼블릭 IPv4</dt><dd>외부 PC에서 접속에 쓰는 주소</dd></div><div><dt>Security Group</dt><dd>웹 TCP 80 허용, SSH TCP 22는 관리자 IP/32로 제한</dd></div><div><dt>IAM</dt><dd>EC2 생성·SG 변경 등 AWS 작업 권한 제어</dd></div></dl>
+<div class="split"><article class="panel"><h3>A · 브라우저로 확인</h3><p>EC2 밖의 브라우저에서 <code>http://&lt;EC2_PUBLIC_IP&gt;/</code>를 열고 URL과 정상 출력된 웹페이지를 함께 확인한다.</p></article><article class="panel"><h3>B · 상태 응답으로 확인</h3><p>Nginx에서 <code>/health</code>를 구성한 뒤 외부 PC에서 상태 <code>200</code>과 설정한 고정 응답을 확인한다.</p><pre class="commands">curl -i http://&lt;EC2_PUBLIC_IP&gt;/health</pre></article></div>
+<p class="links"><a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/evaluation-handbook.md">실습 명령과 평가자료 ↗</a><a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/evaluation-handbook.pdf">평가자료 PDF ↗</a></p>
+</div></section>
+
+<section class="chapter" id="after"><div class="wrap">
+<div class="eyebrow">03 · 실습 후</div><h2>증빙을 먼저 남기고 리소스를 정리하기</h2>
+<div class="note"><strong>EC2를 종료하기 전</strong> 외부 접속 결과와 구성 화면을 캡처한다. 공개 저장소에 올릴 화면에서는 자격 증명과 민감한 정보를 가린다.</div>
+<div class="split"><article class="panel"><h3>제출물 4가지</h3><ul class="checklist"><li><label><input type="checkbox"><span>실제 구성과 요청 흐름을 담은 아키텍처 그림</span></label></li><li><label><input type="checkbox"><span>외부 접속 증빙 A 또는 B 한 건</span></label></li><li><label><input type="checkbox"><span>실제 트러블슈팅 기록</span></label></li><li><label><input type="checkbox"><span>리소스 정리 기록과 최종 상태 증빙</span></label></li></ul></article>
+<article class="panel"><h3>장애 기록과 정리</h3><p>증상 → 가설 → 로그·설정 확인 → 조치 → 재검증 순서로 작성한다. 외부 접속 실패는 라우팅, SG, 공인 IP/DNS, 서버 프로세스 순으로 확인한다.</p><p>EC2·EBS·EIP·IGW·VPC를 같은 리전에서 다시 조회하고 실제 상태와 시각을 남긴다. EIP를 쓰지 않았다면 할당 목록 확인 후 미생성으로 기록한다.</p></article></div>
+<p class="links"><a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/after-lab.md">실습 후 기록 양식 ↗</a><a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/cleanup-checklist.md">리소스 정리표 ↗</a><a href="https://github.com/Kfri-cloud/AWS-mini-test/blob/main/docs/evaluation-criteria.md">평가 기준 17개 ↗</a></p>
+</div></section>
+</details>
+</main>
+<footer class="wrap footer"><p>예제는 학습용이며, 실제 구성과 결과는 실습 후 기록합니다.</p><div class="refs"><a href="https://github.com/Kfri-cloud/AWS-mini-test">GitHub 원본</a><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/What_is_a_web_server">MDN 웹 서버</a><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html">AWS EC2</a><a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html">AWS 인터넷 게이트웨이</a></div></footer>
+</body>
+</html>
