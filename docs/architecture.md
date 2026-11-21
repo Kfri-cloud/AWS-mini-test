@@ -12,7 +12,7 @@ flowchart TB
   NET <--> IGW["Internet Gateway<br/>igw-01fef922fafa9c6cb"]
   subgraph VPC["aws-mini-test-vpc<br/>10.0.0.0/16 | 서울"]
     R["Public Route Table<br/>10.0.0.0/16 → local<br/>0.0.0.0/0 → IGW"]
-    subgraph S["Public Subnet | 10.0.0.0/20 | ap-northeast-2a"]
+    subgraph S["Public Subnet | 10.0.1.0/24 | ap-northeast-2a (설계안)"]
       SG["aws-mini-test-sg<br/>HTTP TCP 80: 0.0.0.0/0<br/>SSH TCP 22: 관리자 IP/32"]
       E["EC2 Ubuntu 24.04 + Nginx<br/>사설 10.0.7.102<br/>퍼블릭 3.35.0.156"]
       SG -. "트래픽 허용" .-> E
@@ -24,6 +24,8 @@ flowchart TB
 ```
 
 </details>
+
+> **위 SVG 도표는 요청하신 설계 표기인 `Public Subnet 10.0.1.0/24`를 사용합니다.** 실제 AWS에서 확인된 서브넷은 `10.0.0.0/20`, EC2 사설 IP는 `10.0.7.102`입니다. 도표만 수정했으며 AWS 리소스에는 변경을 가하지 않았습니다. 평가용으로 실제 구성 증빙을 제출할 때는 이 차이를 반드시 구분하세요.
 
 ## 외부 요청 흐름 (항목 2)
 
