@@ -1,35 +1,79 @@
-# M3-1 | 내가 만든 웹사이트를 인터넷에 올려 누구나 쓰게 하기
+# AWS Mini Test | 네트워크 기초부터 EC2 웹 서버 배포까지
 
-> Codyssey Basic Cloud & AI API · AWS 실습 평가 및 증빙 템플릿
->
-> **진행 현황 (2026-11-21): 서울 리전 VPC·EC2·SSH·Nginx 구축과 외부 브라우저 접속 검증 성공. 리소스 정리는 아직 미실시.** 캡처 원본은 대화에서 확보했으나 GitHub 증빙 이미지 업로드는 별도로 필요합니다.
+> Codyssey M3-1 · AWS 실습 및 평가 기록  
+> **진행 상태 (2026-11-22):** VPC·EC2·SSH·Nginx 구축 및 외부 접속 검증 완료. **리소스 삭제(과제 4)는 미완료**이며, 증빙 이미지의 GitHub 업로드도 확인되지 않았습니다.
 
-## 실습 전 읽기
+## 1. IP 주소와 서브넷 마스크
 
-[AWS 미션 스토리맵 열기](https://aws-mini-test-study-guide.kfri-2-kfri.chatgpt.site/#story-map) · [GitHub 소스 보기](story-map/)
+IPv4 주소는 **8비트(옥텟) × 4 = 32비트**로 구성됩니다. 각 옥텟은 `2^8 = 256`가지 값을 가지며, **0을 포함해 0~255**로 표현합니다. 256은 가능한 값의 개수이지 최댓값이 아닙니다.
 
-웹 서버 기초부터 AWS 연결망, 요청·응답 추적, 접속 검증과 제출까지 6개 장면으로 볼 수 있습니다. 로컬에서는 저장소를 내려받아 `story-map/index.html`을 브라우저로 열면 됩니다.
-
-[웹 서버의 기본부터 AWS EC2까지](docs/server-to-aws.md)에서 내 컴퓨터로 HTTP 요청을 보내 보고, 같은 페이지를 EC2에서 공개할 때 주소, 라우팅, 보안 그룹이 어떻게 연결되는지 확인하세요.
-
-### 네트워크 기초 학습 노트
-
-[IP 주소 · 서브넷 마스크 · CIDR · Route Table 개념 정리](docs/network-fundamentals.md) — VPC·IGW·트래픽과 주소 범위, 기본 경로의 차이를 예제로 정리했습니다.
-
-## 평가 기준: 항목 1~4 (총 17문항)
-
-**[평가 항목 1~4 전체 보기](docs/evaluation-criteria.md)** — 잘린 제목의 첫 5문항은 모두 **항목 1**입니다. 항목 1은 구현·검증·정리 여부, 항목 2~4는 구성 설명·설계 원리·문제 해결 평가입니다.
-
-아래 표의 1~4는 **평가 항목 번호가 아니라 PDF 원문에 지정된 제출물 4종의 번호**입니다.
-
-## 제출물 (원문 3-1.pdf 2쪽)
-
-| 구분 | 파일 | 필수 증빙 |
+| 개념 | 예시 | 의미 |
 |---|---|---|
-| 1. 아키텍처 | [docs/architecture.md](docs/architecture.md), [docs/architecture.svg](docs/architecture.svg) | VPC, Public Subnet, IGW, Route Table, EC2, SG 및 외부 요청 흐름; 최종 PNG/PDF로 내보내기 |
-| 2. 외부 접속 | 아래 '접속 검증' + `docs/evidence/` 스크린샷 | 방식 A/B 중 하나와 외부 응답 |
-| 3. 트러블슈팅 | [docs/troubleshooting.md](docs/troubleshooting.md) | 실제 오류 1건 이상: 증상→가설→검증→조치→결과→재발 방지 |
-| 4. 정리 | [docs/cleanup-checklist.md](docs/cleanup-checklist.md) | EC2/EBS/EIP/IGW/VPC 최소 5종 및 추가 요금 리소스 |
+| IP 주소 | `10.0.1.15` | 장치에 할당되는 주소 |
+| 서브넷 마스크 | `255.255.0.0` | 네트워크/호스트 비트 구분 |
+| CIDR 표기 | `10.0.1.15/16` | IP 주소와 네트워크 프리픽스 길이 |
+| 네트워크 주소 | `10.0.0.0/16` | 해당 네트워크의 범위 |
+
+**학습 이미지 ① — 서브넷 마스크와 CIDR 비교**
+
+![서브넷 마스크 255.0.0.0과 CIDR /8 비교](images/subnet-mask-vs-cidr.png)
+
+**학습 이미지 ② — IPv4의 2⁸=256과 0~255, CIDR 이해**
+
+![IPv4 32비트, 옥텟 0~255, 서브넷 마스크 및 CIDR 도식](images/ipv4-cidr-guide.png)
+
+> **이미지 업로드 대기:** 위 두 경로는 README에 사용할 예정 경로입니다. 실제 PNG가 저장소에 업로드되기 전에는 이미지가 표시되지 않습니다. 일반적인 IPv4 /24는 254개 호스트 주소를 사용하지만, AWS VPC /24에서는 AWS 예약 주소 5개로 인해 251개를 할당할 수 있습니다.
+
+[네트워크 기초 상세 설명](docs/network-fundamentals.md)
+
+## 2. 도식화된 AWS 네트워크 흐름
+
+![AWS 네트워크 아키텍처](docs/architecture.svg)
+
+```text
+외부 사용자 (웹 브라우저)
+        │ HTTP 요청
+        ▼
+인터넷 ↔ Internet Gateway (IGW)
+        │
+        ▼
+VPC 10.0.0.0/16
+        │
+        ├─ Route Table
+        │    ├─ 10.0.0.0/16 → local
+        │    └─ 0.0.0.0/0   → IGW
+        │
+        └─ Public Subnet 10.0.0.0/20
+                 │
+                 ▼
+          Security Group
+          TCP 80 허용
+                 │
+                 ▼
+          EC2 (Nginx 웹 서버)
+          사설 IP: 10.0.7.102
+```
+
+라우트 테이블은 **목적지에 따른 전달 경로**를 정하고, 보안 그룹은 **허용할 트래픽**을 제어합니다. 외부에서 EC2에 접속하려면 퍼블릭 IP, IGW 연결, 라우트, 보안 설정이 함께 맞아야 합니다.
+
+[아키텍처 상세](docs/architecture.md) · [네트워크 스토리맵](story-map/) · [웹 서버에서 AWS까지](docs/server-to-aws.md)
+
+## 3. AWS 과제 1~4 진행 현황
+
+| 과제 | 제출물 | 진행 상태 | 증빙/설명 |
+|---|---|---|---|
+| **1. 아키텍처** | VPC·서브넷·IGW·Route Table·EC2·SG 구성도 | **진행 완료 / 최종 이미지 증빙 확인 필요** | [아키텍처](docs/architecture.md) |
+| **2. 외부 접속 검증** | 브라우저에서 Nginx 접속 확인 | **검증 완료 / GitHub 캡처 업로드 대기** | 2026-11-21 21:57 KST, `Welcome to nginx!` |
+| **3. 트러블슈팅** | 오류·원인·조치·결과 기록 | **작성 완료** | [트러블슈팅](docs/troubleshooting.md) · [서울 리전 문제](docs/seoul-region-troubleshooting.md) |
+| **4. 리소스 정리(삭제)** | EC2·EBS·EIP·IGW·VPC 등 정리 | **미완료 — 삭제 확인 및 증빙 필요** | [삭제 체크리스트](docs/cleanup-checklist.md) |
+
+**과제 4는 실제 삭제가 확인되기 전까지 완료 처리하지 않습니다.** EC2와 연결 스토리지, 탄력적 IP, IGW, VPC 등 요금 발생 가능 리소스를 확인하고 정리해야 합니다.
+
+[평가 항목 1~4 (총 17문항)](docs/evaluation-criteria.md) · [평가/증빙 현황](docs/pre-cleanup-evaluation.md) · [평가 가이드](docs/evaluation-guide.md) · [평가자료 PDF](docs/evaluation-handbook.pdf)
+
+---
+
+## 4. 실습 상세 기록
 
 ## 서울 리전 전환 결과 (2026-11-21)
 
